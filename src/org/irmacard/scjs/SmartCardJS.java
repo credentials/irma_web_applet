@@ -14,13 +14,17 @@ import javax.smartcardio.Card;
 import javax.smartcardio.CardChannel;
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
-import javax.smartcardio.CommandAPDU;
-import javax.smartcardio.ResponseAPDU;
+import javax.smartcardio.TerminalFactory;
 
 import net.sourceforge.scuba.smartcards.CardEvent;
 import net.sourceforge.scuba.smartcards.CardManager;
+import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.CardTerminalEvent;
 import net.sourceforge.scuba.smartcards.CardTerminalListener;
+import net.sourceforge.scuba.smartcards.CommandAPDU;
+import net.sourceforge.scuba.smartcards.IResponseAPDU;
+import net.sourceforge.scuba.smartcards.ResponseAPDU;
+import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.TerminalFactoryListener;
 import net.sourceforge.scuba.util.Hex;
 
@@ -273,6 +277,13 @@ public class SmartCardJS extends Applet
     }
 
     /**
+     * Return last error message
+     */
+    public String getLastError() {
+    	return lastErrorMessage;
+    }
+
+    /**
      * Get a list of readers with cards present.
      * 
      * @return a list of readers
@@ -306,8 +317,7 @@ public class SmartCardJS extends Applet
         }
     }
     
-    private CardTerminal activeReader = null;
-    private Card activeCard = null;
+    private TerminalCardService cardService = null;
     private String lastErrorMessage = "";
     
     public boolean ConnectCard(String readerName) {
@@ -315,17 +325,12 @@ public class SmartCardJS extends Applet
         for (CardTerminal reader : readers) {
             try {
                 if (reader.isCardPresent() && reader.getName().equals(readerName)) {
-                    activeReader = reader;
+                    cardService = new TerminalCardService(reader);
                     try {
-                        activeCard = activeReader.connect("*");						
-					} catch (CardException e) {
-						if(activeReader.isCardPresent()) {
-                            lastErrorMessage = "Cannot connect card, try with another protocol";
-                            return false;
-                        } else {
-                            lastErrorMessage = "Put a card in the terminal before connecting";
-                            return false;
-                        }
+                        cardService.open();
+					} catch (CardServiceException e) {
+						lastErrorMessage = "Cannot connect to the card";
+						return false;
 					}
                 }
             } catch (CardException e) {
@@ -348,20 +353,13 @@ public class SmartCardJS extends Applet
                     for (CardTerminal reader : readers) {
                     	try {
 							if (reader.isCardPresent()) {
-								activeReader = reader;
-								try {
-							        activeCard = activeReader.connect("*");
-							        return true;
-								} catch (CardException e) {
-									if(activeReader.isCardPresent()) {
-							            lastErrorMessage = "Cannot connect card, try with another protocol";
-							            return false;
-							        } else {
-							            lastErrorMessage = "Put a card in the terminal before connecting";
-							            return false;
-							        }
+			                    cardService = new TerminalCardService(reader);
+			                    try {
+			                        cardService.open();
+								} catch (CardServiceException e) {
+									lastErrorMessage = "Cannot connect to the card";
+									return false;
 								}
-								
 							}
 						} catch (CardException e) {
 							e.printStackTrace();
@@ -387,13 +385,12 @@ public class SmartCardJS extends Applet
         try {
             return AccessController.doPrivileged(new PrivilegedExceptionAction<String>() {
                 public String run() {
-                    CardChannel comm = activeCard.getBasicChannel();
                     CommandAPDU getData = new CommandAPDU(Hex.hexStringToBytes(ApduCmd));
                     
                     try {
-                        ResponseAPDU resp = comm.transmit(getData);
+                        IResponseAPDU resp = cardService.transmit(getData);
                         return Hex.bytesToHexString(resp.getBytes());
-                    } catch(CardException e) {
+                    } catch(CardServiceException e) {
                         e.printStackTrace();
                         return (new StringBuilder("Exception ")).append(e.getMessage()).toString();
                     }
