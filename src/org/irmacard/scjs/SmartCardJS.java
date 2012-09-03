@@ -16,6 +16,8 @@ import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
 import javax.smartcardio.TerminalFactory;
 
+import org.irmacard.chvservice.CardHolderVerificationService;
+
 import net.sourceforge.scuba.smartcards.CardEvent;
 import net.sourceforge.scuba.smartcards.CardManager;
 import net.sourceforge.scuba.smartcards.CardServiceException;
@@ -108,7 +110,7 @@ public class SmartCardJS extends Applet
         
         return true;
     }
-    
+
     public void stop() {
         console.traceCall("stop()");
         
@@ -158,7 +160,8 @@ public class SmartCardJS extends Applet
     
     public void enableSignals(String handler) {
         jsSignalHandler = handler;
-        signalsEnabled = true;        
+        signalsEnabled = true;
+        emit(new Signal(this, "Woooot, testing (v.13)!!!", null));
     }
     
     public void disableSignals() {
@@ -266,7 +269,7 @@ public class SmartCardJS extends Applet
         
         // Turn this list of readers into a String
         if (readers.isEmpty()) {
-            return "";
+            return "bananen";
         } else {
             String list = "";
             for (CardTerminal reader : readers) {
@@ -317,15 +320,21 @@ public class SmartCardJS extends Applet
         }
     }
     
-    private TerminalCardService cardService = null;
+    private CardHolderVerificationService cardService = null;
     private String lastErrorMessage = "";
+    
+    public CardHolderVerificationService getCardService() {
+    	return cardService;
+    }
     
     public boolean ConnectCard(String readerName) {
     	List<CardTerminal> readers = cardManager.getTerminals();
         for (CardTerminal reader : readers) {
             try {
                 if (reader.isCardPresent() && reader.getName().equals(readerName)) {
-                    cardService = new TerminalCardService(reader);
+					cardService = new CardHolderVerificationService(
+							new TerminalCardService(reader));
+					cardService.addPinVerificationListener(new PinListener(this));
                     try {
                         cardService.open();
 					} catch (CardServiceException e) {
@@ -339,7 +348,7 @@ public class SmartCardJS extends Applet
         }
         return true;
     }
-    
+
     /**
      * Connect to the first card found on the card readers.
      * @return
@@ -351,19 +360,7 @@ public class SmartCardJS extends Applet
                 public Boolean run() {
                 	List<CardTerminal> readers = cardManager.getTerminals();
                     for (CardTerminal reader : readers) {
-                    	try {
-							if (reader.isCardPresent()) {
-			                    cardService = new TerminalCardService(reader);
-			                    try {
-			                        cardService.open();
-								} catch (CardServiceException e) {
-									lastErrorMessage = "Cannot connect to the card";
-									return false;
-								}
-							}
-						} catch (CardException e) {
-							e.printStackTrace();
-						}
+                    	return ConnectCard(reader.getName());
                     }
                     lastErrorMessage = "No card found.";
                     return false;
@@ -400,5 +397,25 @@ public class SmartCardJS extends Applet
             e.printStackTrace();
         }
         return "";
+    }
+    
+    public int verifyPin() {
+        try {
+            return AccessController.doPrivileged(new PrivilegedExceptionAction<Integer>() {
+                public Integer run() {
+                    try {
+                    	int nr_tries_left = cardService.verifyPIN();
+                        return nr_tries_left;
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                        return -17;
+                    }
+                }
+            });
+        } catch(PrivilegedActionException e) {
+            e.printStackTrace();
+        }
+        
+        return -19;
     }
 }

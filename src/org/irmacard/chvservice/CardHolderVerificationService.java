@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 
 import javax.smartcardio.CardException;
 import net.sourceforge.scuba.util.Hex;
@@ -58,7 +59,7 @@ public class CardHolderVerificationService extends CardService {
     byte wPINMaxExtraDigitMax = 0x04;         // max pin length 12 digits
     
 	private TerminalCardService service;
-	private List<IPinVerificationListener> pinCallbacks;
+	private List<IPinVerificationListener> pinCallbacks = new Vector<IPinVerificationListener>();
 	
 	/* Invariant: when no false PIN was entered in the last attempt
 	 * value is null. Otherwise equal to the number of tries left.
@@ -282,20 +283,29 @@ public class CardHolderVerificationService extends CardService {
         }
     }
 
-    protected void queryFeatures() throws CardServiceException {
-        byte[] resp = service.transmitControlCommand(IOCTL_GET_FEATURE_REQUEST,
-                new byte[0]);
+	protected void queryFeatures() throws CardServiceException {
+		features = new HashMap<Byte, Integer>();
 
-        features = new HashMap<Byte, Integer>();
+		try {
+			byte[] resp = service.transmitControlCommand(
+					IOCTL_GET_FEATURE_REQUEST, new byte[0]);
 
-        for (int i = 0; i < resp.length; i += 6) {
-            Byte feature = new Byte(resp[i]);
-            Integer ioctl = new Integer((0xff & resp[i + 2]) << 24)
-                    | ((0xff & resp[i + 3]) << 16)
-                    | ((0xff & resp[i + 4]) << 8) | (0xff & resp[i + 5]);
-            features.put(feature, ioctl);
-        }
-    }
+			for (int i = 0; i < resp.length; i += 6) {
+				Byte feature = new Byte(resp[i]);
+				Integer ioctl = new Integer((0xff & resp[i + 2]) << 24)
+						| ((0xff & resp[i + 3]) << 16)
+						| ((0xff & resp[i + 4]) << 8) | (0xff & resp[i + 5]);
+				features.put(feature, ioctl);
+			}
+		} catch (Exception e) {
+			// Apperently we cannot query features, assuming no features
+			// present;
+			// FIXME: better describe type, stacktrace says
+			// javax.smartcardio.CardException
+			// is thrown, but that should not be possible...
+			e.printStackTrace();
+		}
+	}
 
     protected byte[] VERIFY_PIN_DIRECT() throws CardServiceException {
         byte[] PIN_VERIFY = createPINVerifyStructure();
