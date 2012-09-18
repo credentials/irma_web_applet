@@ -4,19 +4,13 @@ import java.applet.Applet;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.Currency;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.smartcardio.Card;
-import javax.smartcardio.CardChannel;
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
-import javax.smartcardio.TerminalFactory;
-
-import org.irmacard.chvservice.CardHolderVerificationService;
 
 import net.sourceforge.scuba.smartcards.CardEvent;
 import net.sourceforge.scuba.smartcards.CardManager;
@@ -25,13 +19,13 @@ import net.sourceforge.scuba.smartcards.CardTerminalEvent;
 import net.sourceforge.scuba.smartcards.CardTerminalListener;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
 import net.sourceforge.scuba.smartcards.IResponseAPDU;
-import net.sourceforge.scuba.smartcards.ResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.TerminalFactoryListener;
 import net.sourceforge.scuba.util.Hex;
-
 import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
+
+import org.irmacard.chvservice.CardHolderVerificationService;
 
 public class SmartCardJS extends Applet
     implements CardTerminalListener, TerminalFactoryListener {
