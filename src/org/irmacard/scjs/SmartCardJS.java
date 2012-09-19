@@ -4,28 +4,22 @@ import java.applet.Applet;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.Currency;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.smartcardio.Card;
-import javax.smartcardio.CardChannel;
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
-import javax.smartcardio.TerminalFactory;
-
-import org.irmacard.chvservice.CardHolderVerificationService;
 
 import net.sourceforge.scuba.smartcards.CardEvent;
+import org.irmacard.chvservice.CardHolderVerificationService;
 import net.sourceforge.scuba.smartcards.CardManager;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.CardTerminalEvent;
 import net.sourceforge.scuba.smartcards.CardTerminalListener;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
 import net.sourceforge.scuba.smartcards.IResponseAPDU;
-import net.sourceforge.scuba.smartcards.ResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.TerminalFactoryListener;
 import net.sourceforge.scuba.util.Hex;
@@ -161,7 +155,6 @@ public class SmartCardJS extends Applet
     public void enableSignals(String handler) {
         jsSignalHandler = handler;
         signalsEnabled = true;
-        emit(new Signal(this, "Woooot, testing (v.13)!!!", null));
     }
     
     public void disableSignals() {
@@ -399,16 +392,16 @@ public class SmartCardJS extends Applet
         return "";
     }
     
-    public int verifyPin() {
+    public IResponseAPDU verifyPin() {
         try {
-            return AccessController.doPrivileged(new PrivilegedExceptionAction<Integer>() {
-                public Integer run() {
+            return AccessController.doPrivileged(new PrivilegedExceptionAction<IResponseAPDU>() {
+                public IResponseAPDU run() {
                     try {
-                    	int nr_tries_left = cardService.verifyPIN();
-                        return nr_tries_left;
+                    	IResponseAPDU response = cardService.verify();
+                        return response;
                     } catch(Exception e) {
                         e.printStackTrace();
-                        return -17;
+                        return null;
                     }
                 }
             });
@@ -416,6 +409,6 @@ public class SmartCardJS extends Applet
             e.printStackTrace();
         }
         
-        return -19;
+        return null;
     }
 }
