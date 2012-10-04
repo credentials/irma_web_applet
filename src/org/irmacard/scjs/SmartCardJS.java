@@ -18,7 +18,7 @@ import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.CardTerminalEvent;
 import net.sourceforge.scuba.smartcards.CardTerminalListener;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
+import net.sourceforge.scuba.smartcards.ResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.TerminalFactoryListener;
 import net.sourceforge.scuba.util.Hex;
@@ -155,7 +155,6 @@ public class SmartCardJS extends Applet
     public void enableSignals(String handler) {
         jsSignalHandler = handler;
         signalsEnabled = true;
-        emit(new Signal(this, "Woooot, testing (v.13)!!!", null));
     }
     
     public void disableSignals() {
@@ -379,7 +378,7 @@ public class SmartCardJS extends Applet
                     CommandAPDU getData = new CommandAPDU(Hex.hexStringToBytes(ApduCmd));
                     
                     try {
-                        IResponseAPDU resp = cardService.transmit(getData);
+                        ResponseAPDU resp = cardService.transmit(getData);
                         return Hex.bytesToHexString(resp.getBytes());
                     } catch(CardServiceException e) {
                         e.printStackTrace();

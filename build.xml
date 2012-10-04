@@ -4,7 +4,7 @@
   <property file="build.properties" />
 
   <path id="classpath">
-    <pathelement path="${java.home}/lib/plugin.jar" />
+    <pathelement path="lib/plugin.jar" />
   </path>
 
   <target name="clean">

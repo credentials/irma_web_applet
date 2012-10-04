@@ -13,8 +13,7 @@ import net.sourceforge.scuba.util.Hex;
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
-import net.sourceforge.scuba.smartcards.ICommandAPDU;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
+import net.sourceforge.scuba.smartcards.ResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 public class CardHolderVerificationService extends CardService {
@@ -94,7 +93,7 @@ public class CardHolderVerificationService extends CardService {
 		return service.isOpen();
 	}
 
-	public IResponseAPDU transmit(ICommandAPDU capdu)
+	public ResponseAPDU transmit(CommandAPDU capdu)
 	throws CardServiceException {
 		return service.transmit(capdu);
 	}
@@ -122,9 +121,9 @@ public class CardHolderVerificationService extends CardService {
 			pinString = l.userPinRequest(nrTriesLeft);
 		}
 
-        ICommandAPDU c = new CommandAPDU(0, 0x20, 0, 0, pinString.getBytes());
+        CommandAPDU c = new CommandAPDU(0, 0x20, 0, 0, pinString.getBytes());
         System.out.println("C: " + Hex.toHexString(c.getBytes()));
-        IResponseAPDU r = service.transmit(c);
+        ResponseAPDU r = service.transmit(c);
         System.out.println("R: " + Hex.toHexString(r.getBytes()));
 
         return processPinResponse(r.getSW());
