@@ -104,13 +104,14 @@ public class CardHolderVerificationService extends CardService {
 
     public int verifyPIN() 
     throws CardServiceException {
-        queryFeatures();
+/*        queryFeatures();
         
-        if (features.containsKey(FEATURE_VERIFY_PIN_DIRECT)) {
+/*        if (features.containsKey(FEATURE_VERIFY_PIN_DIRECT)) {
             return verifyPinUsingPinpad();
-        } else {
+        } else {*/
+    	System.out.println("Verifying using dialog");
             return verifyPinUsingDialog();
-        }
+//        }
     }
 
     private int verifyPinUsingDialog()
@@ -377,4 +378,8 @@ public class CardHolderVerificationService extends CardService {
 
         return s.toByteArray();
     }
+
+	public byte[] getATR() throws CardServiceException {
+		return service.getATR();
+	}
 }
