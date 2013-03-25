@@ -122,7 +122,10 @@ public class CardHolderVerificationService extends CardService {
 			pinString = l.userPinRequest(nrTriesLeft);
 		}
 
-        CommandAPDU c = new CommandAPDU(0, 0x20, 0, 0, pinString.getBytes());
+		byte[] pinBytes = pinString.getBytes();
+		byte[] data = new byte[8];
+		System.arraycopy(pinBytes, 0, data, 0, pinBytes.length);
+        CommandAPDU c = new CommandAPDU(0, 0x20, 0, 0, data);
         System.out.println("C: " + Hex.toHexString(c.getBytes()));
         ResponseAPDU r = service.transmit(c);
         System.out.println("R: " + Hex.toHexString(r.getBytes()));
